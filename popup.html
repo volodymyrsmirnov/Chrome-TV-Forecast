@@ -1,0 +1,94 @@
+<html>
+<head>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="content.js"></script>
+<style>
+body {
+	background: #FFFFF;
+	padding:0px;
+	margin:0px;
+	width:350px;
+	color:123272;
+	overflow-x: hidden;
+}
+
+a, a:visited {
+	text-decoration:none;
+}
+
+.showp {
+	border-top:1px solid #ABADB3;
+	padding:5px;
+	height:50px;
+}
+
+
+.showp .title {
+	font-weight: bold;
+	cursor:pointer;
+
+}
+
+.showp .epname,.epdate {
+	font-size: 90%;
+	padding-left:5px;
+
+}
+
+.showp .counter {
+	text-align:right;
+	margin-right:5px;
+	font-variant: small-caps;
+	line-height:50%;
+	padding-top:20;
+}
+
+.showp #number {
+	font-weight: bold;
+	padding-bottom:5px;
+}
+</style>
+
+<script type="text/javascript">
+var sf = null;
+$(function(){
+	sf = new SFdb ();
+	sf.init();
+	sf.popupGetShows();
+});
+
+function show_prev_episodes (id) {
+	sf.showPrevEpisodes(id);
+}
+
+function resizeMe()
+{
+    height = document.getElementById("content").offsetHeight;
+    width  = document.getElementById("content").offsetWidth;
+    self.resizeTo(width+20, height+100);
+}
+</script>
+
+</head>
+<body>
+
+<div id='episodes' style='display:none; width:350px; background-color:white; padding:5px;'>
+<p>
+	<a onclick="$('#episodes').hide(); $('#ser').show(); $('html,body').css('height',$('#ser').css('height')); " href="#">&larr; return to the show list</a>
+</p>
+<div id='loading_bar' align='center' style='padding:30px; font-weight:bold; display:none;'>Loading previous episodes, please wait.</div>
+	
+<div id='list' style='display:none;'></div>
+
+</div>
+
+
+<div id='ser'>
+Loading, please wait
+</div>
+
+
+
+
+</body>
+</html>

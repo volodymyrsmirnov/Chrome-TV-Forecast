@@ -1,0 +1,21 @@
+{
+  "name": "Show Forecast",
+  "version": "0.9.5",
+  "description": "Get your own TV shows schedule in Google Chrome",
+  "icons": { "16": "icon_16_16.png",
+	      "32": "icon_32_32.png",
+	      "48": "icon_48_48.png",
+	      "128": "icon_128_128.png"
+   },
+  "browser_action": {
+    "default_icon": "icon_19_19.png",
+	"popup": "popup.html",
+	"default_title": "Show Forecast"
+  },
+   "permissions": [
+    "http://services.tvrage.com/"
+  ],
+  "options_page": "options.html",
+  "background_page": "background.html"
+  
+}

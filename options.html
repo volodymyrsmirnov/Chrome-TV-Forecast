@@ -1,0 +1,242 @@
+<html>
+<head>
+
+<style>
+body {
+  font-family:helvetica, arial, sans-serif;
+  font-size:80%;
+  margin:10px;
+  color:123272;
+}
+
+
+.section-header {
+  background:#ebeff9;
+  border-top:1px solid #b5c7de;
+  font-size:99%;
+  padding:3px 0 2px 5px;
+  font-weight:bold;
+  margin-bottom:1em;
+  margin-top:4em;
+}
+
+input {
+	width:450px;
+
+}
+
+.ordersel {
+	padding:5px;
+	border:1px dotted black;
+	cursor:pointer;
+}
+
+.section-header.first {
+  margin-top:1em;
+}
+
+#output {
+
+	width:45display:none;0px;
+	
+}
+
+#showlist {
+	width:450px;
+}
+
+.showAC, .showACfinished {
+	border-top: 1px solid ABADB3;
+	padding:5px;
+	background:#ebeff9;
+	cursor:pointer;
+}
+
+.showACfinished {
+	 background:#ffffff;
+	 cursor:default;
+}
+
+
+#hidew {
+	font-weight: bold;
+	cursor:pointer;
+	padding:5px;
+	color:gray;
+}
+
+.delete {
+	background: url(delete.png) no-repeat;
+	width:16px;
+	height:16px;
+	padding-right:16px
+}
+
+.watch {
+	background: url(watch.png) no-repeat;
+	width:16px;
+	height:16px;
+	padding-right:16px;
+	opacity: 0.2;
+	cursor:pointer;
+}
+</style>
+
+ <script type="text/javascript" src="jquery.js"></script>
+ <script type="text/javascript" src="content.js"></script>
+ <script type="text/javascript" src="typewatch.js"></script>
+ <script type="text/javascript">
+$(function(){
+				
+	var sf = new SFdb ();
+	sf.init();
+	sf.settingsGetShowList();
+		
+	
+	$.deletehelper = function (id){
+		if (confirm('Are you sure?')) {
+			sf.settingsDeleteShow (id);
+			sf.settingsGetShowList();
+		}
+	}
+	
+	$.watchhelper = function (id){
+		$('.watch').css('opacity','0.2');
+		$('#watche'+id).css('opacity','1');
+		localStorage['watchid'] = id;
+		sf.backgroudCronJob ();
+	}
+	
+	var options = {
+    callback:function(){ 
+		var queryname = $('#sername').val();
+		$.ajax({
+		   type: "GET",
+		   url: "http://services.tvrage.com/feeds/search.php",
+		   data: "show="+queryname,
+		   dataType: "xml",
+		   success: function(response){
+				$('#output').empty();
+				$("#output").append ('<div id="hidew" align="right">hide ended/canceled shows</div>');
+				$(response).find('show').each(function(){
+					var title =  $(this).find('name').text();
+					var showid =  $(this).find('showid').text();
+					var status =  $(this).find('status').text();
+					if (status == 'Canceled/Ended') 
+						$("#output").append("<div class='showACfinished'>"+title+"</div>"); 
+					else 
+						$("#output").append("<div class='showAC' id='"+showid+"'>"+title+"</div>");
+				});
+				
+				$('.showAC').bind('click',function(){
+					sf.settingsAddShow ($(this).attr('id'),$(this).text());
+					sf.backgroudCronJob ();
+					sf.settingsGetShowList();
+				});
+				
+				$('.showACfinished').bind('click',function(){alert('This show was canceled or ended');});
+				$('#hidew').bind('click',function(){$('.showACfinished').slideUp('slow');$(this).remove();});
+				$('#output').show('slow'); 
+		   }
+		});
+	},
+    wait:500,
+    highlight:true,
+    captureLength:2
+	}
+	
+	$("#sername").typeWatch( options );
+	
+	
+	$('#update').val(localStorage['updatetime']);
+	
+	repairhelper = function (tx) {
+		tx.executeSql(dbstructure);
+		alert ('OK');
+	}
+	
+	$('#cleardb').bind('click',function(){
+		if (confirm('Are you sure?')) {
+			db.transaction(function(tx) {
+				tx.executeSql("DROP TABLE Shows", [],document.location.reload(true),document.location.reload(true));
+			})
+		}
+	});
+	
+	$('#selectno').bind('click',function(){
+		$('.watch').css('opacity','0.2');
+		localStorage['watchid'] = 0;
+		details = new Object();
+		details.text = '';
+		chrome.browserAction.setBadgeText(details);
+	});
+	
+	$('#settingssaveb').bind('click',function(){
+		localStorage['updatetime'] = parseInt($('#update').val());
+		$(this).text('Saved');
+	});
+	
+	$('#'+localStorage['theme']).css('border-width','4px');
+	
+	$('.theme').bind('click',function(){
+		$('.theme').css('border-width','1px');
+		localStorage['theme'] = $(this).attr('id');
+		$(this).css('border-width','4px');
+		var themecolors = new Array ();
+			themecolors[0] = $(this).css('background'); // main background
+			themecolors[1] = $(this).css('color'); // font color
+			themecolors[2] = $(this).css('outline-color'); // odd color
+			themecolors[3] = $(this).css('border-color'); // separator color
+			localStorage['theme_colors'] = themecolors.join('|');			
+	});
+	
+	if(localStorage['order']==2) {
+		$('#ord_desc').css('border-style','solid');
+	} else $('#ord_asc').css('border-style','solid');
+	
+	$('.ordersel').bind('click',function(){
+		$('.ordersel').css('border-style','dotted');
+		$(this).css('border-style','solid');
+		if ($(this).attr('id')=='ord_desc') localStorage['order']=2; else localStorage['order']=1;
+		
+	});
+	
+	
+})
+ </script>
+ 
+ <title>TV Serials Settings</title>
+ 
+ 
+</head>
+<body>
+<div class="section-header first">Settings:</div>
+<label for="upd">Update every (minutes):</label><br />
+<input type='text' id='update' />
+
+<a href="#" id='settingssaveb'>Save</a> 
+<p>If you have any troubles with this extension - clear internal storage DB. <br/>This can help, but will erase all your serials watch-list.
+<a href='#' id='cleardb'>Ok, do it!</a>
+</p>
+
+<p style='padding-bottom:10px;padding-top:10px;'>Pop-up color scheme: 
+<span class='theme' id='light' style='padding:5px; background:#FFFFFF; outline-color:#EBEFF9; color:#123272; border:1px solid #ABADB3; cursor:pointer;'>Google Light</span>
+<span class='theme' id='dark'  style='padding:5px; background:#3C1100; outline-color:#701F00; color:#D9D9DB; border:1px solid #435E69; cursor:pointer;'>Coffee Dark</span>
+<span class='theme' id='pink'  style='padding:5px; background:#F9B0C3; outline-color:#D04F75; color:#EAE1C2; border:1px solid #F65342; cursor:pointer;'>Candy Pink</span>
+<span class='theme' id='fred'  style='padding:5px; background:#990002; outline-color:#BF230A; color:#FFF8A7; border:1px solid #FF1203; cursor:pointer;'>Fall Reds</span>
+</p>
+
+<p>
+Popup "by date" order: <span class='ordersel' id='ord_asc'>&uarr; Ascending</span> <span class='ordersel' id='ord_desc'>&darr; Descending</span>
+</p>
+<div class="section-header first">Your show watch list:</div>
+<div id='showlist'></div>
+<p>You can click <span id='selectno' class='watch'>&nbsp;</span>near the show name to get "days before show" in badge</p>
+
+<div class="section-header first">Add new show:</div>
+<label for="sername">Start typing show name: </label><br/>
+<input id='sername' /> 
+<p id='output'></p>
+
+</body>
+</html>

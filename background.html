@@ -1,0 +1,24 @@
+<html>
+<head>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="content.js"></script>
+<script type="text/javascript" src="timers.js"></script>
+<script type="text/javascript">
+	
+	if (localStorage['updatetime']==null || localStorage['updatetime']<1)
+		localStorage['updatetime'] = 30;
+	
+	if (localStorage['theme'] == null)
+		localStorage['theme'] = 'light';
+	
+
+	var updatetime = 1000 * 60 * localStorage['updatetime']; //every 30 minutes
+	var sf = new SFdb ();
+	sf.init();
+	sf.backgroudCronJob ();
+	$(document).everyTime(updatetime, function(i) {
+		sf.backgroudCronJob ();
+	},0);
+</script>
+</head>
+</html>
